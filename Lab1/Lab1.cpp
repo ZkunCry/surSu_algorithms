@@ -49,11 +49,11 @@ void fillSawtoot(int arr[], int size, int min, int max,int interval)
 		FillUp(&arr[L * i], L, min, max);
 
 	
-	if ((L * interval) < size) {
+	if ((L * interval) < size) 
+	{
 		double h =  (((double(max - min))) / (L));
 		for (int i = L * interval; i < size; i++,j++)
 			arr[i] = h * j + min;
-
 	}
 }
 void fillSin(int arr[], int size, int min, int max, int interval) {
@@ -77,23 +77,18 @@ void fillQuaisie(int arr[], int size, int min, int max, int interval) {
 		for (int i = L * interval; i < size; i++, j++)
 			arr[i] = h * j + min;
 	}
-	printArr(arr, size);
-	std::cout << std::endl;
 	 j = 1;
 	for (int i = 0; i < interval; i++,j++)
 	{
 		int stepLeft =  (L * (j))-1;
-
 		std::swap(arr[ stepLeft], arr[stepLeft + 1]);
 	}
 }
 void fillRandStep(int arr[], int size, int min, int max, int interval) {
 	int L = size / interval;
-	double h = (double(max - min)) / size;
-	for (int i = 0; i < size; i++) {
-		arr[i] = randAB(min, min + (max / interval));
-		if ((i + 1) % (size / interval) == 0)
-			min += max / interval;
+	for (int i = 0; i < interval; i++) {
+		FillRand(&arr[L*i],L,min, min + (max / interval));
+		min += max / interval;
 	}
 	int j = 0;
 	if ((L * interval) < size) {
@@ -104,7 +99,7 @@ void fillRandStep(int arr[], int size, int min, int max, int interval) {
 }
 int main()
 {
-	const int MAX_LENGTH = 1000000;
+	constexpr int MAX_LENGTH = 1000000;
 	int  * arr = new int[MAX_LENGTH];
 	/*for (int N = MAX_LENGTH / 10; N <= MAX_LENGTH; N += MAX_LENGTH / 10)
 	{
@@ -112,7 +107,7 @@ int main()
 		FillUp(arr, MAX_LENGTH, 1, 20);
 		std::cout << GetTickCount() - t1<<std::endl;
 	}*/
-	fillQuaisie(arr, 10, 1,10 , 3);
+	fillRandStep(arr, 10, 1,10 , 2);
 	printArr(arr, 10);
 
 
