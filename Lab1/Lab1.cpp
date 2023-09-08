@@ -32,11 +32,9 @@ void FillRand(int arr[], int size, int min, int max)
 }
 void FillUp(int arr[], int size, int min, int max) 
 {
+	double h = (double(max - min)) / size;
 	for (int i = 0; i < size; i++)
-	{
-		double h = (double(max - min)) / size; 
 		arr[i] = h * i + min;
-	}
 }
 
 void FillDown(int arr[], int size, int min, int max) 
@@ -45,26 +43,49 @@ void FillDown(int arr[], int size, int min, int max)
 }
 void fillSawtoot(int arr[], int size, int min, int max,int interval)
 {
-	int L = size / interval;
-	for (int i = 0; i < interval; i++) {
+	int L = size / interval,j=0;
+
+	for (int i = 0; i < interval; i++) 
 		FillUp(&arr[L * i], L, min, max);
-	}
+
+	
 	if ((L * interval) < size) {
-		double h =  (((double(max - min))) * interval / (size));
-		for (int i = L * interval; i < size; i++)
-			arr[i] = h * (i-L*interval) + min;
+		double h =  (((double(max - min))) / (L));
+		for (int i = L * interval; i < size; i++,j++)
+			arr[i] = h * j + min;
+
 	}
-	//printArr(arr, size);
 }
 void fillSin(int arr[], int size, int min, int max, int interval) {
 	fillSawtoot(arr, size, min, max, interval);
 	int L = size / interval;
-	for (int i = 0; i < interval; i++)
+	for (int i = 0; i <= interval; i++)
 		if (i % 2 == 0)
 			std::reverse(arr + (L * i), arr + (L * i) + L);
 }
 void fillQuaisie(int arr[], int size, int min, int max, int interval) {
-	
+	//fillSawtoot(arr, size, min, max, interval);
+	int L = size / interval, j = 0;
+	for (int i = 0; i < interval; i++)
+	{
+		if(i >0)
+			min = arr[(L * i)-1]+1;
+		FillUp(&arr[L * i], L, min, max);
+	}
+	if ((L * interval) < size) {
+		double h = (((double(max - min))) / (L));
+		for (int i = L * interval; i < size; i++, j++)
+			arr[i] = h * j + min;
+	}
+	printArr(arr, size);
+	std::cout << std::endl;
+	 j = 1;
+	for (int i = 0; i < interval; i++,j++)
+	{
+		int stepLeft =  (L * (j))-1;
+
+		std::swap(arr[ stepLeft], arr[stepLeft + 1]);
+	}
 }
 void fillRandStep(int arr[], int size, int min, int max, int interval) {
 	int L = size / interval;
@@ -74,10 +95,11 @@ void fillRandStep(int arr[], int size, int min, int max, int interval) {
 		if ((i + 1) % (size / interval) == 0)
 			min += max / interval;
 	}
+	int j = 0;
 	if ((L * interval) < size) {
-		double h = (((double(max - min))) * interval / (size));
-		for (int i = L * interval; i < size; i++)
-			arr[i] = h * (i - L * interval) + min;
+		double h = (((double(max - min))) / L);
+		for (int i = L * interval; i < size; i++,j++)
+			arr[i] = h * j + min;
 	}
 }
 int main()
@@ -90,17 +112,10 @@ int main()
 		FillUp(arr, MAX_LENGTH, 1, 20);
 		std::cout << GetTickCount() - t1<<std::endl;
 	}*/
-	//fillSawtoot(arr, 11, 1, 10,5);
-	/*FillUp(arr, 10, 1, 10);
-	printArr(arr, 10);*/
-	/*fillSawtoot(arr, 20, 1, 10, 3);
-	std::cout << "FillSawtooh" << std::endl;
-	printArr(arr, 20);
-	std::cout << std::endl;
-	fillSin(arr, 20, 1, 10, 3);
-	printArr(arr, 20);*/
-	fillRandStep(arr, 10, 1, 10, 2);
+	fillQuaisie(arr, 10, 1,10 , 3);
 	printArr(arr, 10);
+
+
 	return 0;
 
 }
