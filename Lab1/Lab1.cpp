@@ -1,26 +1,33 @@
 ﻿#define _USE_MATH_DEFINES
+#define VAR_TYPE 		double // Necessary for real and integer numbers
 #include <iostream>
 #include <random>
 #include <Windows.h>
 #include <cmath>
-
+#include <fstream>
+#include <ostream>
+#include <string>
+#include <format>
+using namespace std;
+typedef VAR_TYPE key_t;
 
 int randAB(int min, int max);
-void FillRand(int arr[], int size, int min, int max);
-void FillUp(int arr[], int size, int min, int max);
-void FillDown(int arr[], int size, int min, int max);
-void fillSawtoot(int arr[], int size, int min, int max, int interval);
-void fillSin(int arr[], int size, int min, int max, int interval);
+void FillRand(key_t arr[], int size, key_t min, key_t max);
+void FillUp(key_t arr[], int size, key_t min, key_t max);
+void FillDown(key_t arr[], int size, key_t min, key_t max);
+void fillSawtoot(key_t arr[], int size, key_t min, key_t max, key_t interval);
+void fillSin(key_t arr[], int size, key_t min, key_t max, key_t interval);
+inline void writeOnFile(std::ofstream& out, const std::string& sourceText);
+void printArr(key_t arr[], int size, int interval);
 
-void printArr(int arr[], int size, int interval);
 
-
-void printInterval(int arr[], int size) {
+void printInterval(key_t arr[], int size) {
 	for (int i = 0; i < size; i++) 
 		std::cout << arr[i]<<std::endl;
 	std::cout << std::endl;
 }
-void printArr(int arr[], int size,int interval)
+
+void printArr(key_t arr[], int size,int interval)
 {
 	int L = size / interval;
 	for (int i = 0; i < interval; i++)
@@ -32,23 +39,29 @@ int randAB(int min, int max)
 	return (((rand())<<15)|rand()) 
 			%(max-min) + min;
 }
-void FillRand(int arr[], int size, int min, int max)
+
+double db_randAB(double min, double max) {
+	return min + fmod(static_cast<double>(rand()), max - min);
+}
+
+void FillRand(key_t arr[], int size, key_t min, key_t max)
 {
 	for(int i =0;i<size;i++)
-		arr[i] = randAB(min, max);
+		arr[i] = (key_t)db_randAB(min, max);
 }
-void FillUp(int arr[], int size, int min, int max) 
+
+void FillUp(key_t arr[], int size, key_t min, key_t max) 
 {
 	double h = (double(max - min)) / size;
 	for (int i = 0; i < size; i++)
 		arr[i] = h * i + min;
 }
 
-void FillDown(int arr[], int size, int min, int max) 
+void FillDown(key_t arr[], int size, key_t min, key_t max) 
 {
 	FillUp(arr, size, max, min);
 }
-void fillSawtoot(int arr[], int size, int min, int max,int interval)
+void fillSawtoot(key_t arr[], int size, key_t min, key_t max,key_t interval)
 {
 	int L = size / interval,j=0;
 	double h = (((double(max - min))) / (L));
@@ -59,14 +72,14 @@ void fillSawtoot(int arr[], int size, int min, int max,int interval)
 		for (int i = L * interval; i < size; i++,j++)
 			arr[i] = h * j + min;
 }
-void fillSin(int arr[], int size, int min, int max, int interval) {
+void fillSin(key_t arr[], int size, key_t min, key_t max, key_t interval) {
 	fillSawtoot(arr, size, min, max, interval*2);
 	int L = size / (interval+interval);
 	for (int i = 0; i <= interval; i++)
 		if (i % 2 == 0)
 			std::reverse(arr + (L * i), arr + (L * i) + L);
 }
-void fillQuaisie(int arr[], int size, int min, int max, int interval) {
+void fillQuaisie(key_t arr[], int size, key_t min, key_t max, int interval) {
 	int L = size / interval, j = 0;
 	double h = (((double(max - min))) / (L));
 	for (int i = 0; i < interval; i++)
@@ -79,13 +92,13 @@ void fillQuaisie(int arr[], int size, int min, int max, int interval) {
 		for (int i = L * interval; i < size; i++, j++)
 			arr[i] = h * j + min;
 	 j = 1;
-	for (int i = 0; i < interval; i++,j++)
+	for (int i = 0; i < interval-1; i++,j++)
 	{
 		int stepLeft =  (L * (j))-1;
-		std::swap(arr[ stepLeft], arr[stepLeft + 1]);
+		std::swap(arr[stepLeft], arr[stepLeft + 1]);
 	}
 }
-inline void fillRandStep(int arr[], int size, int min, int max, int interval) {
+inline void fillRandStep(key_t arr[], int size, key_t min, key_t max, int interval) {
 	int L = size / interval;
 
 	for (int i = 0; i < interval; i++) {
@@ -101,23 +114,30 @@ inline void fillRandStep(int arr[], int size, int min, int max, int interval) {
 	}
 
 }
+inline void writeOnFile(std::ofstream &out,const std::string &sourceText) //Needed to write results to a file
+{
+	out << sourceText << std::endl;
+}
 int main()
 {
 	system("chcp 1251 > null");
-	constexpr long MAX_LENGTH = 400000000;
-	int  * arr = new int[MAX_LENGTH];
+	constexpr long MAX_LENGTH = 100000000;
+	std::ofstream out;
+	std::string resultIteration;
+	out.open("table.txt");
+	key_t  * arr = new key_t[MAX_LENGTH];
 	int j = 1;
 
-	for (int N = MAX_LENGTH / 200; N <= MAX_LENGTH / 2; N += MAX_LENGTH / 200)
+	for (int N = MAX_LENGTH / 20; N <= MAX_LENGTH; N += MAX_LENGTH / 20)
 	{
 		auto t1 = GetTickCount();
-		fillSin(arr, N, 1, N, 3);
+		FillRand(arr, N, 1, N);
+		writeOnFile(out, '(' + std::to_string(N / 10000) +
+			',' + std::to_string((GetTickCount() - t1)) + ')');
 		std::cout << "(" << N/10000 << ','<< (GetTickCount() - t1) <<')'  << std::endl;
 		j++;
+
 	}
-	
-
 	return 0;
-
 }
 
