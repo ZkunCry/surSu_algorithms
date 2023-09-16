@@ -1,5 +1,5 @@
 ﻿#define _USE_MATH_DEFINES
-#define VAR_TYPE 		double // Necessary for real and integer numbers
+#define VAR_TYPE 		int // Necessary for real and integer numbers
 #include <iostream>
 #include <random>
 #include <Windows.h>
@@ -7,6 +7,10 @@
 #include <fstream>
 #include <ostream>
 #include <string>
+#include <algorithm>
+#include <functional>
+
+int counter;
 using namespace std;
 typedef VAR_TYPE key_t;
 
@@ -94,7 +98,7 @@ void fillQuaisie(key_t arr[], int size, key_t min, key_t max, int interval) {
 	for (int i = 0; i < interval-1; i++,j++)
 	{
 		int stepLeft =  (L * (j))-1;
-		std::swap(arr[stepLeft], arr[stepLeft + 1]);
+		swap(arr[stepLeft], arr[stepLeft + 1]);
 	}
 }
 inline void fillRandStep(key_t arr[], int size, key_t min, key_t max, int interval) {
@@ -117,26 +121,64 @@ inline void writeOnFile(std::ofstream &out,const std::string &sourceText) //Need
 {
 	out << sourceText << std::endl;
 }
+
+
+inline const bool compare(key_t a, key_t b)
+{
+	counter++;
+	return a >= b;
+}
+
+int Partition(key_t arr[],int start,int end)
+{
+	int pivot = arr[end];
+	int pIndex = start;
+	for (int i = start; i < end; i++)
+
+		if (compare(arr[i], pivot)) {
+			swap(arr[i], arr[pIndex]);
+			pIndex++;
+		}
+	swap(arr[pIndex], arr[end]);
+	return pIndex;
+}
+inline void qSort(key_t arr[], int start,int end)
+{
+	if (end - start <=0)
+		return;
+	int pivot = Partition(arr, start, end);
+	if ((pivot - start) > (end - pivot))
+	{
+		qSort(arr, pivot + 1, end);
+		qSort(arr, start, pivot - 1);
+	}
+	else
+	{
+		qSort(arr, start, pivot - 1);
+		qSort(arr, pivot + 1, end);
+	}
+	
+}
 int main()
 {
 	system("chcp 1251 > null");
-	constexpr long MAX_LENGTH = 100000000;
-	std::ofstream out;
-	std::string resultIteration;
-	out.open("table.txt");
+	constexpr long MAX_LENGTH =1000000;
 	key_t  * arr = new key_t[MAX_LENGTH];
-	int j = 1;
 	int step = MAX_LENGTH / 5;
+	int prevSize=0;
+	FillRand(arr, MAX_LENGTH, 1, 100);
 	for (int N = step; N <= MAX_LENGTH; N += step)
 	{
-		auto t1 = GetTickCount();
-		FillUp(arr, N, 1, N);
-		writeOnFile(out, std::to_string(N) +
-			' ' + std::to_string((GetTickCount() - t1)));
-		std::cout << "(" << N << ','<< (GetTickCount() - t1) <<')'  << std::endl;
-		j++;
-
+		//std::cout << "prevSize: " << prevSize << " N: " << N << endl;
+		auto time = GetTickCount();
+		//stable_sort(arr + prevSize, arr + N);
+		qSort(arr, prevSize, N);
+		//sort(arr + prevSize, arr + N);
+		prevSize = N;
+		
+		cout << N<<' '<< GetTickCount() - time << endl;
 	}
+	std::cout << counter;
 	return 0;
 }
 
