@@ -1,5 +1,6 @@
 ﻿#include <iostream>
 #include "myRandom.h"
+#include <ostream>
 int counter;
 using namespace std;
 
@@ -14,6 +15,16 @@ inline bool compare2(const key_t a, const key_t b)
 {
 	counter++;
 	return a >b;
+}
+bool isSorted(const key_t arr[], int size) {
+	int i = 0;
+	for (; i < size - 1; i++) {
+		if (arr[i] <= arr[i + 1])
+			continue;
+		else
+			return false;
+	}
+	return true;
 }
 int Partition(key_t arr[],int start,int end)
 {
@@ -51,32 +62,49 @@ inline void qSort(key_t arr[], int start,int end)
 	}
 	
 }
+void start(const std::string &funcName) {
+	constexpr long MAX_LENGTH = 5000000;
+	int step = MAX_LENGTH / 5;
+	int prevSize = 0;
+	int stableCount = 0;
+	std::ofstream timeApplication, countCompare;
+	timeApplication.open(funcName+"time.txt");
+	countCompare.open(funcName+"count.txt");
+	std::cout << "Testing sort algorithm: " << funcName<<std::endl;
+	for (int N = step; N <= MAX_LENGTH; N += step)
+	{
+		key_t* arr = new key_t[N];
+		fillRandStep(arr, N, 0, N, 9);
+		auto time = GetTickCount();
+		if(funcName =="qsortC")
+			qsort((void*)(arr), N, sizeof(arr[0]), compare);
+		else if(funcName =="qSort")
+			qSort(arr, 0, N - 1);
+		else if(funcName =="sort")
+			sort(arr, arr + N, compare2);
+		else if(funcName =="stable")
+			stable_sort(arr, arr + N, compare2);
+		cout << counter << ' ' << GetTickCount() - time << endl;
+		writeOnFile(countCompare, std::to_string(counter) + " "+ std::to_string((GetTickCount() - time)));
+		writeOnFile(timeApplication, std::to_string(N) + " " + std::to_string((GetTickCount() - time)));
+		if (isSorted(arr, N))
+			stableCount++;
+		counter = 0;
+		delete[]arr;
+	}
+	if (stableCount == 5)
+		std::cout << funcName << " is stable" << endl;
+
+}
 int main()
 {
 	system("chcp 1251 > null");
-	constexpr long MAX_LENGTH = 5000000;
-	//key_t  * arr = new key_t[MAX_LENGTH];
-	int step = MAX_LENGTH/5;
-	int prevSize=0;
+	start("qSort");
+	start("qsortC");
+	start("sort");
+	start("stable");
 
-	for (int N = step; N <= MAX_LENGTH; N +=step)
-	{
-		key_t* arr = new key_t[N];
-		fillRandStep(arr, N, 0, N,9);
-
-		auto time = GetTickCount();
-		//qSort(arr, 0, N-1);
-		//qsort((void *)(arr), N, sizeof(arr[0]), compare);
-		//stable_sort(arr, arr+N,compare2);
-		sort(arr, arr + N, compare2);
-
-
-		cout << counter << ' ' << GetTickCount() - time << endl;
-		//cout << "Counter : " << counter<<endl;
-		counter = 0;
-		delete []arr;
-	}
-	//std::cout << counter;
+	
 	return 0;
 }
 
