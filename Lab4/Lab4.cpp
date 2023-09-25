@@ -1,6 +1,10 @@
 ﻿
 #include <iostream>
 #include <functional>
+#include <fstream>
+#include <Windows.h>
+#include <string>
+#include <sstream>
 using std::endl;
 using std::cout;
 using std::string;
@@ -30,7 +34,7 @@ int search_pattern(const string& src, const string& pattern) {
 	}
 	auto pattern_hash = get_hash(pattern);
 	auto src_hash = get_hash(src.substr(0,pattern.length()));
-
+	
 	for (int i = 0; i < (src.length() - pattern.length()) + 1;i++)
 	{
 		if (pattern_hash == src_hash)
@@ -44,11 +48,35 @@ int search_pattern(const string& src, const string& pattern) {
 				src_hash += variables.Q;
 		}
 	}
+	
 	return count >0 ? count : -1;
 
 }
 
 int main()
 {
-	std::cout<< search_pattern("So you fuck", "So");
+	std::ifstream in("text.txt");
+	std::stringstream ss;
+	ss << in.rdbuf();
+	
+	string text;
+	text = ss.str();
+	in.close();
+
+	const int N_MAX = text.size();
+	const int Step = N_MAX / 5;
+	auto tempN = 0;
+	int d = 10;
+	for (int N = Step; N <= N_MAX; N += Step)
+	{
+		auto mainText = text.substr(0, N);
+		auto patternText = mainText.substr(tempN, d);
+		auto time = GetTickCount();
+		auto result = search_pattern(text, patternText);
+		cout << GetTickCount() - time <<" "<<mainText.size() << endl;
+		cout << "Result: " << result << endl;
+		d *= 10;
+		tempN = N;
+	}
+
 }
