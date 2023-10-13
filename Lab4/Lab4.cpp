@@ -1,11 +1,10 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
-#include <functional>
-#include <fstream>
 #include <Windows.h>
 #include <string>
-#include <sstream>
-#include <iterator>
+#include <cstring>
+#include <vector>
+#include <algorithm> 
 using std::endl;
 using std::cout;
 using std::string;
@@ -20,10 +19,11 @@ double db_randAB(double min, double max) {
 	return min + fmod(static_cast<double>(rand()), max - min);
 }
 
-void FillRand(string src, int size, char min, char max)
+template <typename _T>
+void FillRand(_T &src, int size, char min, char max)
 {
 	for (int i = 0; i < size; i++)
-		src[i] = (char)db_randAB(min, max);
+		src.push_back(randAB(min, max));
 }
 typedef struct methodHorner {
 public:
@@ -31,81 +31,79 @@ public:
 	int B = 13;
 }hash_var;
 
-static hash_var variables;
+int SearchStringKMP(string text, string pattern) {
 
-/*По формуле: Hash = c1 * b^m-1 + c2 * b^m-2 + ... +  cm * b^0 */
-
-
-long int get_hash(const string& src) {
-	
-	int result = 0;
-	for (auto value : src)
-		result = (variables.B * result + char(value)) % variables.Q;
-	return result;
-}
-int search_pattern(const string& src, const string& pattern) {
-
-	int multiplier = 1,count = 0;
-	for (int i = 1; i < pattern.length(); i++) {
-		multiplier = (multiplier * variables.B) % variables.Q;
+	int i, j;
+	std::vector<int> Next(pattern.length());
+	int M = pattern.length();
+	int N = text.length();
+	for (Next[0] = j = -1, i = 1; i < M; i++) {
+		//Префикс-функция (индексы)
+		for (; j > -1 && pattern[j + 1] != pattern[i]; j = Next[j]);
+		if (pattern[j + 1] == pattern[i]) j++;
+		Next[i] = j;
+	}
+	for (j = -1, i = 0; i < N; i++) {
+		//пока есть совпадения i и j растут одновременно
+		for (; j > -1 && pattern[j + 1] != text[i]; j = Next[j]);//сдвиги
+		if (pattern[j + 1] == text[i]) j++;
+		if (j == M - 1) {  return i - j; }
 	}
 
-	auto pattern_hash = get_hash(pattern);
-	auto src_hash = get_hash(src.substr(0,pattern.length()));
-	
-	for (int i = 0; i < (src.length() - pattern.length()) + 1;i++)
-	{
-		if (pattern_hash == src_hash)
-		{
-			if (src.substr(i,  pattern.length()) == pattern)
-				count++;
-		}
-		if (i < (src.length() - pattern.length())) {
-			src_hash = ((src_hash - char(src[i]) * multiplier) * variables.B 
-				+ char(src[i + pattern.length()])) % variables.Q;
-			if (src_hash < 0)
-				src_hash += variables.Q;
-		}
-	}
-	
-	return count > 0 ? count : -1;
-
+	return -1;
 }
+
 
 
 int main()
 {
-	std::ifstream in("text.txt");
-	std::stringstream ss;
-	ss << in.rdbuf();
-	
+	const int MaxSizeT = 10000000;
+	const int MaxSizeP = 1000000;
+	const int Trials = 5;
+	int StepT = MaxSizeT / 10;
+	int StepP = MaxSizeP / 5;
+	int N = MaxSizeT; 
+	int M = MaxSizeP;
 	string text;
+	string pattern;
+	ULONGLONG time=0;
+	cout << "-------------------------Search algorithm KMP-------------------------" << endl;
 
-	text = ss.str();
-	in.close();
 
-	const int N_MAX = text.length();
-	const int countIter = 5;
-	const int Step = N_MAX / countIter;
+	/*for (int N = StepT; N <= MaxSizeT; N += StepT)
+	{*/
 
-	int M = 10;
-		for (int N = Step; N <= N_MAX; N += Step)
+
+		for (int M = StepP; M <= MaxSizeP; M += StepP)
 		{
-			cout << "Size of search string: " << M << endl << "Size of main text:" << N_MAX << endl;
-			for (int i = 0; i < countIter; i++)
+			pattern.clear();
+			text.clear();
+			FillRand(text, N, 'a', 'z');
+			for (int i = 0; i < Trials; i++)
 			{
-				auto mainText = text.substr(0, N);
 				int id = randAB(0, N - M - 1);
-				auto patternText = mainText.substr(id, M);
-				auto time = GetTickCount64();
-				auto result = search_pattern(text, patternText);
-				cout << GetTickCount64() - time << " " << mainText.size() << endl;
-				cout << "Result: " << result << endl;
+				pattern = text.substr(id, M);
+				/*pattern.pop_back();
+				pattern.push_back('-');*/
+				auto t1 = GetTickCount64();
+
+				//int index = KMP(text,pattern);
+
+				auto index = strstr(text.c_str(), pattern.c_str());
+			/*	if (index == -1)
+					cout << "false";*/
+				auto t2 = GetTickCount64();
+				time += t2 - t1;
 			}
-			cout << endl;
-			cout << endl;
-			M *= 10;
+			cout << M << " " << (double)(time / Trials) << endl;
+			time = 0;
+
+
+
 		}
-		
-	}
+	//}
+
+		cout << endl;
+	
+}
 
