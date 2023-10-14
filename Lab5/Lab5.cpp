@@ -1,31 +1,28 @@
-﻿// Lab5.cpp : Этот файл содержит функцию "main". Здесь начинается и заканчивается выполнение программы.
-//
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
+﻿#include <stdio.h>
+#include <string>
+#include <vector>
 #include <time.h>
+#include <fstream>
 //Вариант 2:  Подсчет количества гласных в листьях дерева
 //T = char
 //D = [а..я] &&[А..Я]
 
-
 typedef struct Node* pNode;
 typedef void(*pFunction)(pNode);
-typedef char Item;
+typedef int Item;
 struct Node { pNode Left; pNode Right; Item  Data; int Size; };
-//---------------------Создание узла----------------------------------------
 pNode NewNode(Item D)
 {
-    pNode  pN = malloc(sizeof(struct Node));
+    pNode  pN =(Node*)malloc(sizeof(struct Node));
     pN->Left = 0;
     pN->Right = 0;
     pN->Data = D;
     pN->Size = 0;
     return pN;
 }
-
+int Max(int a, int b) {
+    return (a > b) ? a : b;
+}
 //---------------------Прямой обход-----------------------------------------
 void VisitPre(pNode root, pFunction Function)
 {
@@ -81,16 +78,16 @@ void VisitPost(pNode root, pFunction Function)
     }
 }
 //---------------------Вставка узла-----------------------------------------
-void Insert(pNode* proot, Item D)
-{
+void Insert(pNode* proot, Item D) {
 #define root (*proot)
     if (!root)
         root = NewNode(D);
+    else if (D < root->Data)
+        Insert(&(root->Left), D);
     else
-        if (D < root->Data)
-            Insert(&(root->Left), D);
-        else
-            Insert(&(root->Right), D);
+        Insert(&(root->Right), D);
+
+    FixSize(root);
 #undef root
 }
 //---------------------Поиск узла-------------------------------------------
@@ -164,7 +161,7 @@ void DeleteNode(pNode* ROOT, Item D)
 //---------------------------Высота дерева---------------------------------
 
 int Height(pNode root) {
-    return (root == NULL) ? 0 : 1 + max(Height(root->Left), Height(root->Right));
+    return (root == NULL) ? 0 : 1 + Max(Height(root->Left), Height(root->Right));
 }
 //---------------------------Поворот вправо---------------------------------
 void RotateRight(pNode* pLev0)
@@ -276,31 +273,62 @@ int countVowels(pNode root) {
     if (root == NULL)  //Если дерево пустое, возвращаем 0
         return 0;
     else if (root->Left == NULL && root->Right == NULL) { //Если узел не содержит потомков, значит это лист
-       
+
         for (int i = 0; i < n; i++) //Последовательно проверяем
-            if (toupper( root->Data )== toupper(vowelsChars[i])) //Если буква в листе является согласной(учитываются и заглавные)
+            if (toupper(root->Data) == toupper(vowelsChars[i])) /*
+                                                                Если буква в листе является 
+                                                                согласной(учитываются и заглавные)*/
                 return 1; //Возвращаем единичку, т.е true
         return 0; //иначе 0, т.е буква не гласная
     }
-    else 
+    else
         // Если узел не является листом, рекурсивно вызываем функцию для его потомков
         return countVowels(root->Left) + countVowels(root->Right);
+}
+
+void DoMeasurements() {
+    const int maxSize = 500;
+
+    pNode bTreeSerial = NULL;
+    pNode bTreeRandom = NULL;
+    for (int i = 0; i < maxSize; i++) {
+        Insert(&bTreeSerial, i);
+        InsertRandom(&bTreeRandom, i);
+
+        printf("%d %d %d\n", i, Height(bTreeSerial), Height(bTreeRandom));
+    }
+
+    printf("\n\nRandom Keys\n");
+
+    bTreeSerial = NULL;
+    bTreeRandom = NULL;
+    for (int i = 0; i < maxSize; i++) {
+        Insert(&bTreeSerial, rand() % maxSize);
+        InsertRandom(&bTreeRandom, rand() % maxSize);
+
+        printf("%d %d %d\n", i, Height(bTreeSerial), Height(bTreeRandom));
+    }
+
+    printf("\n");
+}
+
+void writeInExcel(const std::string&title, const std::vector<std::string>columns, const std::string& nameFile = "result.csv")
+{
+    std::ofstream file(nameFile);
+    file << title << std::endl;
+    for (auto value : columns) {
+        file << value << std::endl;
+    }
+    file.close();
 }
 int main()
 {
     system("chcp 1251 > null");
-    //TestTrees();
-    pNode bTreeRoot = NewNode('б');
+    const std::string title = "example;test;test2";
+    std::vector<std::string> columns = { "1;2;3","4;5;6","7;8;9" };
+    writeInExcel(title, columns);
+  
 
-    Insert(&bTreeRoot, 'а');
-    Insert(&bTreeRoot, 'с');
-    Insert(&bTreeRoot, 'е');
-    Insert(&bTreeRoot, 'д');
-    Insert(&bTreeRoot, 'у');
-
-    PrintPoly(bTreeRoot);
-    printf("%d", countVowels(bTreeRoot));
-
+    return 0;
 
 }
-
