@@ -6,12 +6,16 @@
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
+//Вариант 2:  Подсчет количества гласных в листьях дерева
+//T = char
+//D = [а..я] &&[А..Я]
+
 
 typedef struct Node* pNode;
 typedef void(*pFunction)(pNode);
 typedef char Item;
 struct Node { pNode Left; pNode Right; Item  Data; int Size; };
-//---------------------Create Node----------------------------------------
+//---------------------Создание узла----------------------------------------
 pNode NewNode(Item D)
 {
     pNode  pN = malloc(sizeof(struct Node));
@@ -22,7 +26,7 @@ pNode NewNode(Item D)
     return pN;
 }
 
-//---------------------Direct bypass-----------------------------------------
+//---------------------Прямой обход-----------------------------------------
 void VisitPre(pNode root, pFunction Function)
 {
     if (root)
@@ -66,7 +70,7 @@ void Print(pNode root) {
     if (!root) return;
     printf("%d ", root->Data);
 }
-//---------------------�������� �����---------------------------------------
+//---------------------Обратный обход---------------------------------------
 void VisitPost(pNode root, pFunction Function)
 {
     if (root)
@@ -76,7 +80,7 @@ void VisitPost(pNode root, pFunction Function)
         Function(root);
     }
 }
-//---------------------������� ����-----------------------------------------
+//---------------------Вставка узла-----------------------------------------
 void Insert(pNode* proot, Item D)
 {
 #define root (*proot)
@@ -89,7 +93,7 @@ void Insert(pNode* proot, Item D)
             Insert(&(root->Right), D);
 #undef root
 }
-//---------------------����� ����-------------------------------------------
+//---------------------Поиск узла-------------------------------------------
 pNode Find(pNode root, pNode* parent, int* LR, Item D)
 {
     *parent = 0;
@@ -112,7 +116,7 @@ pNode Find(pNode root, pNode* parent, int* LR, Item D)
                 return root;
     return 0;
 }
-//---------------------����� ������� ������������---------------------------
+//---------------------Поиск правого минимального---------------------------
 pNode FindMinRight(pNode root, pNode* parent)
 {
     while (root->Left)
@@ -122,12 +126,12 @@ pNode FindMinRight(pNode root, pNode* parent)
     }
     return root;
 }
-//---------------------�������� ������ ����---------------------------------
+//---------------------Удаление одного узла---------------------------------
 void Delete(pNode root)
 {
     if (root) free(root);
 }
-//---------------------�������� ���� � �������� ������----------------------
+//---------------------Удаление узла с заданным ключом----------------------
 void DeleteNode(pNode* ROOT, Item D)
 {
     int LR = 0;
@@ -156,10 +160,13 @@ void DeleteNode(pNode* ROOT, Item D)
         Delete(root);
     }
 }
+
+//---------------------------Высота дерева---------------------------------
+
 int Height(pNode root) {
     return (root == NULL) ? 0 : 1 + max(Height(root->Left), Height(root->Right));
 }
-//---------------------------������� ������---------------------------------
+//---------------------------Поворот вправо---------------------------------
 void RotateRight(pNode* pLev0)
 {
 #define Lev0 (*pLev0)
@@ -169,7 +176,7 @@ void RotateRight(pNode* pLev0)
     Lev0 = Lev1;
 #undef Lev0
 }
-//---------------------------������� �����----------------------------------
+//---------------------------Поворот влево----------------------------------
 void RotateLeft(pNode* pLev0)
 {
 #define Lev0 (*pLev0)
@@ -179,7 +186,7 @@ void RotateLeft(pNode* pLev0)
     Lev0 = Lev1;
 #undef Lev0
 }
-//-------------------------������� � ������---------------------------------
+//-------------------------Вставка в корень---------------------------------
 void InsertRoot(pNode* proot, Item D)
 {
 #define root (*proot)
@@ -262,19 +269,21 @@ void TestTrees() {
 
     printf("%d %d", GetSize(bTreeRoot), Height(bTreeRoot));
 }
-
+//-------------------------Подсчет количества гласных в листьях---------------------------------
 int countVowels(pNode root) {
-    if (root == NULL) 
+    char vowelsChars[] = { 'а','о','у','э','ы','я','ё','е','ю','и' }; //Алфавит
+    int n = sizeof(vowelsChars) / sizeof(vowelsChars[0]); //Задаем размер алфавита
+    if (root == NULL)  //Если дерево пустое, возвращаем 0
         return 0;
-    else if (root->Left == NULL && root->Right == NULL) {
-        char vowelsChars[] = { 'а','о','у','э','ы','я','ё','е','ю','и' };
-        int n = sizeof(vowelsChars) / sizeof(vowelsChars[0]);
-        for (int i = 0; i < n; i++)
-            if (root->Data == vowelsChars[i])
-                return 1;
-        return 0;
+    else if (root->Left == NULL && root->Right == NULL) { //Если узел не содержит потомков, значит это лист
+       
+        for (int i = 0; i < n; i++) //Последовательно проверяем
+            if (toupper( root->Data )== toupper(vowelsChars[i])) //Если буква в листе является согласной(учитываются и заглавные)
+                return 1; //Возвращаем единичку, т.е true
+        return 0; //иначе 0, т.е буква не гласная
     }
     else 
+        // Если узел не является листом, рекурсивно вызываем функцию для его потомков
         return countVowels(root->Left) + countVowels(root->Right);
 }
 int main()
@@ -288,8 +297,6 @@ int main()
     Insert(&bTreeRoot, 'е');
     Insert(&bTreeRoot, 'д');
     Insert(&bTreeRoot, 'у');
-
-
 
     PrintPoly(bTreeRoot);
     printf("%d", countVowels(bTreeRoot));
